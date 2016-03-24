@@ -205,11 +205,8 @@ if __name__ == '__main__':
     usage = "dbseqextract [options] -i <FILE> "
     epilog = """
     dbseqextract extract fasta sequences from databases.
-    dbseqextract is part of the taxoptimizersuite. It reports the fasta sequences of a list of taxon (kronaextract report).
+    dbseqextract is part of the taxoptimizer suite. It reports the fasta sequences of a list of taxon given by the kronaextract program.
     
-    This list of taxon (ID and offset number) is the ouptput of from a blast/taxoptimizer report. 
-    
-    dbseqextract extract the subject ID, the start and stop positions in the blast report and report the HSP of the subject in a file.
     """
     parser = argparse.ArgumentParser(prog='dbseqextract.py',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter, usage=usage, epilog=epilog)
