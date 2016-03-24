@@ -176,7 +176,7 @@ def deb_extract(infh, outfh, containers):
         
         acc, db = subject_id_analyser(subject_id)
         subject_sequence = doGoldenAndParse(db, acc)
-        part_subject_sequence = subject_sequence[s_start -1, s_end]
+        part_subject_sequence = subject_sequence[s_start -1:s_end]
         write_fasta(outfh, '%s [%s:%s] (%s [%s:%s])' % (subject_id, s_start, s_end, query_id, q_start, q_end), part_subject_sequence, 60)
 
 
