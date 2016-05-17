@@ -12,16 +12,21 @@ import os
 import sys
 import argparse
 
-
-import rankoptimizerlib
-
-
 class RankOptimizerError:
     def __init__(self, err):
         self.err = err
 
     def __repr__(self):
         return "[rankoptimizer] " + self.err
+
+try:
+    LIB = os.environ['RANKOPTIMIZERLIB']
+except:
+    print >>sys.stderr, RankOptimizerError("The mandatory RANKOPTIMIZERLIB environment variable is not defined")
+    sys.exit(1)
+
+import rankoptimizerlib
+
 
 
 def clean_taxo(sbjct_taxonomy, clean_cellular):
@@ -312,8 +317,7 @@ By default, only the best HSP of each sequence is reported.""")
                                  dest='krona_jsfh',
                                  help="Krona javascript library. Official distribution: https://github.com/marbl/Krona/blob/master/KronaTools/src/krona-2.0.js",
                                  type=file,
-                                 metavar="File",
-                                 required=True)
+                                 metavar="File")
 
     general_options.add_argument("-c", "--taxcolumn",
                                  action='store',
@@ -398,7 +402,19 @@ By default, only the best HSP of each sequence is reported.""")
                                   default=False,)
 
     args = parser.parse_args()
-
+    
+    if args.krona_jsfh:
+        krona_jsfh = args.krona_jsfh
+    else:
+        try:
+            SHARE = os.environ['RANKOPTIMIZERSHARE']
+            if SHARE not in sys.path:
+                sys.path.append( SHARE )
+                krona_jsfh = SHARE + '/krona-2.0.js'
+        except:
+            print >>sys.stderr, RankOptimizerError("Krona javascript library is mandatory. https://github.com/marbl/Krona/blob/master/KronaTools/src/krona-2.0.js") 
+            sys.exit(1)
+        
     query_infos = {}
     taxcolumn = args.taxcolumn - 1
     scorecolumn = args.scorecolumn - 1
@@ -553,17 +569,17 @@ By default, only the best HSP of each sequence is reported.""")
 
     if args.htmlxmlfh:
         try:
-            args.krona_jsfh.seek(0)
+            krona_jsfh.seek(0)
             krona_xml = rankoptimizerlib.Krona(args.htmlxmlfh, args.tabfh.name, taxo_tree)
-            krona_xml.krona_html(args.krona_jsfh)
+            krona_xml.krona_html(krona_jsfh)
         except IOError, err:
             print >>sys.stderr, err
 
     if args.htmljsonfh:
         try:
-            args.krona_jsfh.seek(0)
+            krona_jsfh.seek(0)
             krona_json = rankoptimizerlib.KronaJSON(args.htmljsonfh, args.tabfh.name, taxo_tree)
-            krona_json.krona_html(args.krona_jsfh)
+            krona_json.krona_html(krona_jsfh)
         except IOError, err:
             print >>sys.stderr, err
 
