@@ -160,10 +160,12 @@ def write_fasta(fhout, comment, sequence, nb_pb_in_line):
 
 
 
-def deb_extract(infh, outfh, containers):
+def deb_extract(infh, outfh, containers, name):
     """
     Extract a list of sequences form a database and rewrite a part DNA sequence (HSP start/stop) in file
     """
+    if name:
+        name += ':'
     for posline in containers.values():
         infh.seek(posline)
         blast_line = infh.readline()
@@ -177,7 +179,7 @@ def deb_extract(infh, outfh, containers):
         acc, db = subject_id_analyser(subject_id)
         subject_sequence = doGoldenAndParse(db, acc)
         part_subject_sequence = subject_sequence[s_start -1:s_end]
-        write_fasta(outfh, '%s [%s:%s] (%s [%s:%s])' % (subject_id, s_start, s_end, query_id, q_start, q_end), part_subject_sequence, 60)
+        write_fasta(outfh, '%s%s [%s:%s] (%s [%s:%s])' % (name, subject_id, s_start, s_end, query_id, q_start, q_end), part_subject_sequence, 60)
 
 
 def subject_id_analyser(subject_id):
@@ -228,7 +230,13 @@ if __name__ == '__main__':
                                  type=argparse.FileType('w'),
                                  metavar="file",
                                  required=True)
+    general_options.add_argument("-n", "--name", dest="name",
+                                 help="Taxonomic name.",
+                                 type=str,
+                                 metavar="STR",
+                                 default=''
+                                 )
     args = parser.parse_args()
 
     containers =  offset_extract(args.krona_extract_file)
-    deb_extract(args.taxoptimizer_file, args.outfile, containers)
+    deb_extract(args.taxoptimizer_file, args.outfile, containers, args.name)
