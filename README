@@ -34,9 +34,18 @@ Creation of database indexes with goldin (https://github.com/C3BI-pasteur-fr/gol
  $ export GOLDENDATA='/user_path/my_working_directory'
 
 Creation of the NCBI Taxonomy Database in Berkeley DB library (https://github.com/C3BI-pasteur-fr/taxodb_ncbi)
- $ taxodb.py -n names.dmp -d nodes.dmp -b ncbi_taxodb.bdb 
+ $ taxodb.py -n names.dmp -d nodes.dmp -b ncbi_osVSoc.bdb 
+Creation of the RRNA taxonomy in Berkeley DB library (https://github.com/C3BI-pasteur-fr/taxo_rrna)
+$ python taxodb_rrna.py -i current_GREENGENES_gg16S_unaligned.fasta -n greengenes -b gg_accVosoc.bdb
+$ python taxodb_rrna.py -i LSURef_111_tax_silva.fasta -n silva_lsu -b silva_lsu_accVosoc.bdb
+$ python taxodb_rrna.py -i SSURef_111_NR_tax_silva.fasta -n silva_ssu  -b silva_ssu_accVosoc.bdb
 
- # A compress ncbi_taxodb.bdb file is in taxo_pack-2.0/test repository 
+ Note: A compress ncbi_taxodb.bdb file is in taxo_pack-2.0/test repository 
+
+You have two possibilities to use the Berkeley DB library.
+The first one is to specify the bdb file on the command line with the -b option and the second one is to to store bdb files in one ore
+more specific directories. In that case, you have to define NCBITAXODB_BDB, GGTAXODB_BDB or/and SILVATAXODB_BDB environment variable(s). 
+
 
 USAGE
 -----
