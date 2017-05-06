@@ -160,26 +160,33 @@ def write_fasta(fhout, comment, sequence, nb_pb_in_line):
 
 
 
-def deb_extract(infh, outfh, containers, name):
+def db_extract(infh, outfh, containers, name):
     """
     Extract a list of sequences form a database and rewrite a part DNA sequence (HSP start/stop) in file
     """
     if name:
         name += ':'
-    for posline in containers.values():
+    pos = containers.values()
+    pos.sort()
+    for posline in pos:
         infh.seek(posline)
         blast_line = infh.readline()
         fld = blast_line.split('\t')
         # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
         
         query_id, subject_id = fld[0], fld[1]
-        q_start, q_end = fld[6], fld[7]
-        s_start, s_end = int(fld[8]), int(fld[9])
-        
         acc, db = subject_id_analyser(subject_id)
-        subject_sequence = doGoldenAndParse(db, acc)
-        part_subject_sequence = subject_sequence[s_start -1:s_end]
-        write_fasta(outfh, '%s%s [%s:%s] (%s [%s:%s])' % (name, subject_id, s_start, s_end, query_id, q_start, q_end), part_subject_sequence, 60)
+        try:
+            q_start, q_end = fld[6], fld[7]
+            s_start, s_end = int(fld[8]), int(fld[9])
+            subject_sequence = doGoldenAndParse(db, acc)
+            part_subject_sequence = subject_sequence[s_start -1:s_end]
+            write_fasta(outfh, '%s%s [%s:%s] (%s [%s:%s])' % (name, subject_id, s_start, s_end, query_id, q_start, q_end), part_subject_sequence, 60)
+
+        except:
+            print >>sys.stderr, "Error: not a good format; check your input file (-i option)"
+            sys.exit(1)
+
 
 
 def subject_id_analyser(subject_id):
@@ -239,4 +246,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     containers =  offset_extract(args.krona_extract_file)
-    deb_extract(args.taxoptimizer_file, args.outfile, containers, args.name)
+    db_extract(args.taxoptimizer_file, args.outfile, containers, args.name)

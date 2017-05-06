@@ -43,8 +43,17 @@ $ python taxodb_rrna.py -i SSURef_111_NR_tax_silva.fasta -n silva_ssu  -b silva_
  Note: A compress ncbi_taxodb.bdb file is in taxo_pack-2.0/test repository 
 
 You have two possibilities to use the Berkeley DB library.
-The first one is to specify the bdb file on the command line with the -b option and the second one is to to store bdb files in one ore
+The first one is to specify the bdb file on the command line with the -b option of the taxoptimizer program and the second one is to to store bdb files in one ore
 more specific directories. In that case, you have to define NCBITAXODB_BDB, GGTAXODB_BDB or/and SILVATAXODB_BDB environment variable(s). 
+
+Download the krona javascript library
+$ wget https://github.com/marbl/Krona/blob/master/KronaTools/src/krona-2.0.js
+You have two possibilities to use the krona, javascript library.
+The first one is to specify the krona-2.0.js file on the command line with the -s option of the rankoptimizer program and the second one is to to store krona-2.0.js file
+in one specific directory. In that case, you have to define RANKOPTIMIZERSHARE environment variable.
+
+
+Don't forget to define RANKOPTIMIZERLIB and GOLDENDATA environment variables which respectively correspond to the rankoptimizer.py and Golden program environments. 
 
 
 USAGE
@@ -56,7 +65,7 @@ Get help:
  $ python kronaextract.py -h
 
  $ taxoptimizer.py -i ~/taxo_pack-2.0/test/sequence_test.blast.m8 -o sequence_test.taxo -b ~/taxo_pack-2.0/test/ncbi_taxodb.bdb -t ncbi
- $ wget https://github.com/marbl/Krona/blob/master/KronaTools/src/krona-2.0.js
+ 
  $ rankoptimizer.py -i ~/taxo_pack-2.0/test/sequence_test.tr.bl8.taxo -k R_k.xml -t R_t.txt -v R_v.html -V R_Vj.html -j R_j.json -p R_p.dmp -a -s krona-2.0.js
  $ kronaextract.py -i R_k.xml -n 'Retroviridae'  -o Retroviridae.out -s Retroviridae
 
