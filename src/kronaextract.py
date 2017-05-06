@@ -33,7 +33,7 @@ if __name__ == '__main__':
     usage = "kronaextract [options] -i <FILE>  -n <STRING>"
     epilog = """
     kronaextract extract sub-list of Query ID from a set of sequences matching a given taxon name and/or their offset number in the blast report
-The output file could be split into two files: the 'prefix.seq' file contains reads names and the 'prefix.offset' file contains the corresponding taxoptimizer's line offset.
+The output file could be split into two files: the 'prefix.seqname.txt' file contains reads names and the 'prefix.offset.txt' file contains the corresponding taxoptimizer's line offset.
 """
     parser = argparse.ArgumentParser(prog='kronaextract.py',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter, usage=usage, epilog=epilog)
@@ -88,8 +88,8 @@ The output file could be split into two files: the 'prefix.seq' file contains re
 #            print 'tout est ok: %s reads' % len(list_of_reads)
 
     if args.prefix:
-        outfh_name = open(args.prefix + '.seq', 'w')
-        outfh_offset = open(args.prefix + '.offset', 'w')
+        outfh_name = open(args.prefix + '.seqname.txt', 'w')
+        outfh_offset = open(args.prefix + '.offset.txt', 'w')
 
     for read_info in list_of_reads:
         if args.outfile:

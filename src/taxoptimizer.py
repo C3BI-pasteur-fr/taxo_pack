@@ -245,9 +245,9 @@ def doGoldenMulti(allTaxo, l_cards, DE, allTaxId, osVSoc_bdb):
                 allTaxo[acc] = {'db': l_db_acc[0]}
                 allTaxo[acc]['orgName'], allTaxo[acc]['taxId'], allTaxo[acc]['taxoLight'], allTaxo[acc]['DE'] = parse(flatFile, DE)  # orgName, taxId, taxoLight, description
                 allTaxo, allTaxId = extractTaxoFrom_osVSocBDB_multi(acc, allTaxo, allTaxId, osVSoc_bdb)
-
             flatFile = Golden.access_new(l_cards)
             idx_res += 1
+
         return allTaxo
     except IOError, err:
         print >>sys.stderr, err, l_cards
@@ -328,6 +328,7 @@ def extractTaxoFrom_accVSos_ocBDB(acc, allTaxo, BDB):
 def column_analyser(fldcolumn, db):
     acc = ''
     if len(fldcolumn) == 5:
+        # ncbi 
         if not db:
             db = fldcolumn[2]
         acc = fldcolumn[3].split('.')[0]
@@ -340,6 +341,10 @@ def column_analyser(fldcolumn, db):
             acc = fldcolumn[1].split('.')[0]
     elif len(fldcolumn) == 1 and db:
         acc = fldcolumn[0]
+    else:
+        # vipr_nt debug
+        db = fldcolumn[0]
+        acc = fldcolumn[1]
     return acc, db
 
 
@@ -677,7 +682,6 @@ if __name__ == '__main__':
             except:
                 print >>sys.stderr, TaxOptimizerError("Silva TaxoDB database is mandatory (bekley db format)  or set the SILVABDBDATA environment variable")
                 sys.exit(1)
-
 
     if args.bdbtype == 'ncbi':
         osVSoc_bdb = bdb.DB()

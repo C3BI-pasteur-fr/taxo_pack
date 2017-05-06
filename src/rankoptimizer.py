@@ -316,8 +316,7 @@ By default, only the best HSP of each sequence is reported.""")
     general_options.add_argument('-s', '--krona_js',
                                  dest='krona_jsfh',
                                  help="Krona javascript library. Official distribution: https://github.com/marbl/Krona/blob/master/KronaTools/src/krona-2.0.js. \
-                                 If  RANKOPTIMIZERSHARE unix environment variable is set, this option is not mandatory \
-                                 cf https://raw.githubusercontent.com/marbl/Krona/master/KronaTools/src/krona-2.0.js",
+                                 If  RANKOPTIMIZERSHARE unix environment variable is set, this option is not mandatory",
                                  type=file,
                                  metavar="File")
 
