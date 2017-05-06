@@ -440,7 +440,7 @@ By default, only the best HSP of each sequence is reported.""")
             continue
         fld = line.split('\t')
         try:
-            query = fld[0]
+            query = fld[0].strip()
         except StandardError, err:
             print >>sys.stderr, RankOptimizerError("query error:%s line:%s" % (err, blast_line))
             sys.exit()
@@ -518,7 +518,9 @@ By default, only the best HSP of each sequence is reported.""")
             print >>sys.stderr, 'no taxo found for %s' % query
             continue
 
-        taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+        #taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+        toPrintInKrona = '\t'.join(line.split()[1:11])
+        taxo_tree = insert_taxo_tot(taxo_tree, query.strip(), toPrintInKrona, sbjct_taxonomy, args.rank, args.identical)
 
         if 'delta' in infos:
             all_delta_taxo = [sbjct_taxonomy]
