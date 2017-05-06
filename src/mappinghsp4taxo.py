@@ -35,7 +35,7 @@ except:
 
 
 import Golden
-# os.environ['GOLDENDATA'] = "/mount/banques/prod/index/golden"
+os.environ['GOLDENDATA'] = "/mount/banques/prod/index/golden"
 
 try:
     GOLDENDATA = os.environ['GOLDENDATA']
@@ -44,8 +44,8 @@ except:
     #os.environ['GOLDENDATA'] = GOLDENDATA
     print >>sys.stderr, MappingError('The mandatory GOLDENDATA environment variable is not defined. Consult https://github.com/C3BI-pasteur-fr/golden.')
     sys.exit(1)
-
-
+ 
+ 
 import genoGd
 
 
@@ -326,7 +326,7 @@ def plotMerge(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4
         picturefh.close()
 
 
-def plotMerge2plus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFewPlus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -364,7 +364,7 @@ def plotMerge2plus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fonts
         picturefh.close()
 
 
-def plotMerge2minus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFewMinus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -401,7 +401,7 @@ def plotMerge2minus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, font
         picturefh.close()
 
 
-def plotMerge2(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFew(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -453,92 +453,55 @@ if __name__ == '__main__':
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter, usage=usage)
     general_options = parser.add_argument_group(title="Options", description=None)
 
-    general_options.add_argument("-i", "--one_column_file", dest="oneofflinefh",
-                                 help="Offset's list of line to parse taxoptomizer output file (cf option -b). File contains taxoptimizer's line offset (integer).",
-                                 metavar="file",
+    general_options.add_argument("-i", "--two_column_file", dest="krona_extract_fh",
+                                 help="kronaextract output file: query and HSP in two columns", 
+                                 type=file,
                                  required=True)
-    general_options.add_argument("-j", "--two_column_file", dest="twoofflinefh",
-                                 help="kronaextract output file. FIle contains two column; first: reads name and second: taxoptimizer's line offset (integer).",
-                                 metavar="file",
-                                 required=True)
-    general_options.add_argument("-b", "--taxofile", dest="taxofh",
-                                 help="[p]taxoptimizer output file (format: blast m8 + OC + taxonomy +/-  DE).",
-                                 metavar="file",
-                                 required=True)
-
-    general_options.add_argument("-e", "--extract_file", dest="extractfh",
-                                 help="Extract lines of interest from [p]taxoptimizer file and write them in <file>",
-                                 type=argparse.FileType('w'),
-                                 metavar="file")
 
     general_options.add_argument("-c", "--blast_column",
                                  dest="blast_column", metavar="int",
-                                 help="Column number to parse in ptaxoptimizer file (default: 2)", default=1)
+                                 help="Column number to parse in ptaxoptimizer file (default: 2)",
+                                 default=1)
     general_options.add_argument("-s", "--separator",
                                  dest="separator", metavar="STRING",
                                  help="Separator character (default '|')",
                                  default='|')
 
     general_options.add_argument("-p", "--picture_file", dest="picture_prefix",
-                                 help="Draw picture(s) with prefix <str>. png format", metavar="STRING", default='')
+                                 help="Draw picture(s) with prefix <str>. png format", 
+                                 metavar="STRING", default='')
 
     general_options.add_argument("-x", "--strand_orientation", dest='strand_orientation',
                                  help="Split mapping acccording to strand's orientation (minus and plus orientations)",
-                                 metavar="BOOLEAN", action="store_true", default=False)
+                                action="store_true", default=False)
 
     general_options.add_argument("-m", "--merge", dest='merge',
                                  help="Draw all hsp in one line",
-                                 metavar="BOOLEAN", action="store_true", default=False)
+                                 action="store_true", default=False)
 
-    general_options.add_argument("-M", "--merge2", dest='merge2',
+    general_options.add_argument("-M", "--merge_few", dest='merge_few',
                                  help="Draw non overlapping hsp in few lines   --> in developpment",
-                                 metavar="BOOLEAN", action="store_true", default=False)
+                                action="store_true", default=False)
 
-    general_options.add_argument("-g", "--galaxy_restrict", dest='galaxy_restrict',
-                                 help="Restrict output(s) to one reference sequence",
-                                 metavar="BOOLEAN", action="store_true", default=False)
 
     args = parser.parse_args()
-
-    if args.oneofflinefh:
-        try:
-            offlinefh = args.oneofflinefh
-            offset_column = 0
-        except IOError, err:
-            print >>sys.stderr, err
-            sys.exit()
-    elif args.twoofflinefh:
-        try:
-            offlinefh = args.twoofflinefh
-            offset_column = 1
-        except IOError, err:
-            print >>sys.stderr, err
-            sys.exit()
 
     DBInfo = {}
 
     maxi = 0
     sbjctAccMax = []
-    offline = offlinefh.readline()
-    while offline:
-        off_field = offline.split('\t')
-        if len(off_field) != offset_column + 1:
-            print >>sys.stderr, "format error: cf option error: -i/--one_column_file or -j/two_column_file \n"
-            sys.exit(1)
-        position = int(off_field[offset_column])
-        args.taxofh.seek(position)
-        blLine = args.taxofh.readline()
-        if args.extract_file:
-            print >>args.extractfh, blLine[:-1]
-        blfld = blLine.split('\t')
-        query = blfld[0]
+    line = args.krona_extract_fh.readline()
+    while line:
+        fld = line.split('\t')
+        
+        query = fld[0].strip()
         try:
-            sbjctInfo = blfld[args.blast_column].split(args.separator)
+            sbjctInfo = fld[args.blast_column].split(args.separator)
         except:
-            if args.blast_column < len(blfld):
-                print >>sys.stderr, RankOptimizerError("Parsing error: %s" % blfld[args.blast_column])
+            if args.blast_column < len(fld):
+                print >>sys.stderr, MappingError("Parsing error: %s" % fld[args.blast_column])
             else:
-                print >>sys.stderr, RankOptimizerError("Parsing error: column %s doesn't exist in line nb %s" % (args.blast_column+1, blLine))
+                print >>sys.stderr, MappingError("Parsing error: column %s doesn't exist in line nb %s" % (args.blast_column+1, line))
             continue
         sbjctAcc = ''
         sbjctDB = ''
@@ -552,14 +515,14 @@ if __name__ == '__main__':
             sbjctAcc = sbjctInfo[1]
 
         if not sbjctAcc or not sbjctDB:
-            print >>sys.stderr, RankOptimizerError("Parsing error: %s" % blfld[args.blast_column])
+            print >>sys.stderr, MappingError("Parsing error: %s" % fld[args.blast_column])
             continue
 
         if sbjctAcc in DBInfo:
             DBInfo[sbjctAcc]['nb'] += 1
-            DBInfo[sbjctAcc]['blast'].append(blfld[:12])
+            DBInfo[sbjctAcc]['blast'].append(fld[:12])
         else:
-            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [blfld[:12]]}
+            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld[:12]]}
 
         if DBInfo[sbjctAcc]['nb'] > maxi:
             maxi = DBInfo[sbjctAcc]['nb']
@@ -567,27 +530,20 @@ if __name__ == '__main__':
         elif DBInfo[sbjctAcc]['nb'] == maxi:
             sbjctAccMax.append(sbjctAcc)
 
-        offline = offlinefh.readline()
-
-    if args.galaxy_restrict:
-        # fichiers multiples mal geres par galaxy
-        sbjctAccMax = sbjctAccMax[0:1]
+        line = args.krona_extract_fh.readline()
 
     for elemMax in sbjctAccMax:
-        if not args.galaxy_restrict:
-            plot_name_prefix = args.picture_prefix + '_' + elemMax
-        else:
-            plot_name_prefix = args.picture_prefix
+        plot_name_prefix = args.picture_prefix + '_' + elemMax
         plus = []
         minus = []
         DBInfo[elemMax]['blast'].sort(lambda x, y: cmp(int(x[8]), int(y[8])))
-        if args.strand_orientation or (args.merge or args.merge2):
+        if args.strand_orientation or (args.merge or args.merge_few):
             for bl in DBInfo[elemMax]['blast']:
                 if int(bl[8]) <= int(bl[9]):
                     plus.append(bl)
                 else:
                     minus.append(bl)
-            if (args.merge or args.merge2):
+            if (args.merge or args.merge_few):
                 new = []
                 i = 0
                 j = 0
@@ -615,7 +571,7 @@ if __name__ == '__main__':
             continue
         sbjctLen = len(sbjctSeq)
         # sbjctLen = 2900
-        if args.picture_prefix and (not args.merge and not args.merge2):
+        if args.picture_prefix and (not args.merge and not args.merge_few):
             if not args.strand_orientation:
                 plot(plot_name_prefix + '.png', sbjctLen, elemMax, DBInfo[elemMax]['blast'], sizeX=700, fontsize=8, typePlot='png')
             else:
@@ -623,7 +579,6 @@ if __name__ == '__main__':
                 plot(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
 
         if args.picture_prefix and args.merge:
-            # if not args.galaxy_restrict:
             plot_name_prefix += '_merge'
 
             if not args.strand_orientation:
@@ -632,11 +587,10 @@ if __name__ == '__main__':
                 plotMerge(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
                 plotMerge(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
 
-        if args.picture_prefix and args.merge2:
-            # if not args.galaxy_restrict:
+        if args.picture_prefix and args.merge_few:
             plot_name_prefix += '_noOverlap'
             if not args.strand_orientation:
-                plotMerge2(plot_name_prefix + '.png', sbjctLen, elemMax, new, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFew(plot_name_prefix + '.png', sbjctLen, elemMax, new, sizeX=700, fontsize=8, typePlot='png')
             else:
-                plotMerge2plus(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
-                plotMerge2minus(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFewPlus(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFewMinus(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
