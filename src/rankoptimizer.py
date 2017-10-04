@@ -527,6 +527,7 @@ By default, only the best HSP of each sequence is reported.""")
         #taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
         ###########> toPrintInKrona
         toPrintInKrona = ['\t'.join(line.split()[1:11]), args.path_img, args.path_aln]
+
         taxo_tree = insert_taxo_tot(taxo_tree, query.strip(), toPrintInKrona, sbjct_taxonomy, args.rank, args.identical)
 
         if 'delta' in infos:

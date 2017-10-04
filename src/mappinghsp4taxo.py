@@ -51,6 +51,7 @@ except:
 
 ######################## analyse krona utput and golden
 
+
 def parseUniprot(flatFile, DE):
     """
     parse uniprot or embl like flat file
@@ -417,7 +418,6 @@ def plotMergeFew(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsiz
 
 
 
-
 ##############################################################################
 #
 #            Golden: Keep this for compatibility and performance testing.
@@ -458,8 +458,8 @@ def doGolden(db, ac, file_format='fasta'):
         return ''
 
 
-##############################################################################
 
+##############################################################################
 
 def parse_krona_extract(fhin, blast_column):
     DBInfo = {}
@@ -468,7 +468,7 @@ def parse_krona_extract(fhin, blast_column):
     line = fhin.readline()
     while line:
         fld = line.split('\t')
-        
+
         query = fld[0].strip()
         try:
             sbjctInfo = fld[blast_column].split(args.separator)
@@ -508,6 +508,7 @@ def parse_krona_extract(fhin, blast_column):
 
         line = fhin.readline()
     return DBInfo, subjct_with_max_query
+
 
 
 def print_subjetcs(fho, DBInfo):
@@ -657,5 +658,3 @@ if __name__ == '__main__':
             else:
                 plotMergeFewPlus(plot_name_prefix + '_plus.png', sbjctLen, subject, plus, sizeX=700, fontsize=8, typePlot='png')
                 plotMergeFewMinus(plot_name_prefix + '_minus.png', sbjctLen, subject, minus, sizeX=700, fontsize=8, typePlot='png')
-
-
