@@ -90,7 +90,7 @@ def extract_tot_rank(taxonomy):
     return all_nodes
 
 
-def insert_taxo_tot(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identical_read):
+def insert_taxo_tot(taxo_tree, query, toPrintInKrona, taxonomy, rank_in_tree, identical_read):
     all_nodes = extract_tot_rank(taxonomy)
     if taxo_tree.name == 'root':
         if identical_read and '_' in query:  # # supposed name_n
@@ -115,8 +115,6 @@ def insert_taxo_tot(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identica
             taxo_tree.add_child(name, '')
     child = taxo_tree.get_child(name)
 
-    # child.add_queries((query,  pos_line) )
-
     if identical_read and '_' in query:  # # supposed name_n
         n = query.split('_')[-1]
         try:
@@ -135,7 +133,6 @@ def insert_taxo_tot(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identica
                 else:
                     parent.add_child(name, '')
             child = parent.get_child(name)
-            # child.add_queries((query, pos_line))
             if identical_read and '_' in query:  # # supposed name_n
                 n = query.split('_')[-1]
                 try:
@@ -158,7 +155,7 @@ def insert_taxo_tot(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identica
             else:
                 parent.add_child(name, '')
         child = parent.get_child(name)
-        child.add_queries((query, pos_line))
+        child.add_queries((query, toPrintInKrona))
         if identical_read and '_' in query:  # # supposed name_n
             n = query.split('_')[-1]
             try:
@@ -173,7 +170,7 @@ def insert_taxo_tot(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identica
     return taxo_tree
 
 
-def insert_taxo_tot_delta(taxo_tree, query, pos_line, taxonomy, rank_in_tree, identical_read):  # ## idem que insert_taxo_tot why ???????
+def insert_taxo_tot_delta(taxo_tree, query, toPrintInKrona, taxonomy, rank_in_tree, identical_read):  # ## idem que insert_taxo_tot why ???????
     all_nodes = extract_tot_rank(taxonomy)
     if taxo_tree.name == 'root':
         if identical_read and '_' in query:  # # supposed name_n
@@ -198,7 +195,6 @@ def insert_taxo_tot_delta(taxo_tree, query, pos_line, taxonomy, rank_in_tree, id
             taxo_tree.add_child(name, '')
     child = taxo_tree.get_child(name)
 
-    # child.add_queries((query,  pos_line) )
     if identical_read and '_' in query:  # # supposed name_n
         n = query.split('_')[-1]
         try:
@@ -217,7 +213,6 @@ def insert_taxo_tot_delta(taxo_tree, query, pos_line, taxonomy, rank_in_tree, id
                 else:
                     parent.add_child(name, '')
             child = parent.get_child(name)
-            # child.add_queries((query,  pos_line))
             if identical_read and '_' in query:  # # supposed name_n
                 n = query.split('_')[-1]
                 try:
@@ -240,7 +235,7 @@ def insert_taxo_tot_delta(taxo_tree, query, pos_line, taxonomy, rank_in_tree, id
             else:
                 parent.add_child(name, '')
         child = parent.get_child(name)
-        child.add_queries((query, pos_line))
+        child.add_queries((query, toPrintInKrona))
         if identical_read and '_' in query:  # # supposed name_n
             n = query.split('_')[-1]
             try:
@@ -375,7 +370,18 @@ By default, only the best HSP of each sequence is reported.""")
                                 help="Report lowest common ancestor of the taxonomic abundance",
                                 action='store_true',
                                 default=False,)
-
+    output_options.add_argument("-g", "--path_img",
+                                dest='path_img',
+                                metavar="File",
+                                type=str,
+                                help='Path of all pictures',
+                                default='.')
+    output_options.add_argument("-G", "--path_aln",
+                                dest='path_aln',
+                                metavar="File",
+                                type=str,
+                                help='Path of all alignments',
+                                default='.')
     specific_options = parser.add_argument_group(title="Specific options", description=None)
 
     specific_options.add_argument("-d", "--delta",
@@ -440,7 +446,7 @@ By default, only the best HSP of each sequence is reported.""")
             continue
         fld = line.split('\t')
         try:
-            query = fld[0]
+            query = fld[0].strip()
         except StandardError, err:
             print >>sys.stderr, RankOptimizerError("query error:%s line:%s" % (err, blast_line))
             sys.exit()
@@ -518,7 +524,10 @@ By default, only the best HSP of each sequence is reported.""")
             print >>sys.stderr, 'no taxo found for %s' % query
             continue
 
-        taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+        #taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+        ###########> toPrintInKrona
+        toPrintInKrona = ['\t'.join(line.split()[1:11]), args.path_img, args.path_aln]
+        taxo_tree = insert_taxo_tot(taxo_tree, query.strip(), toPrintInKrona, sbjct_taxonomy, args.rank, args.identical)
 
         if 'delta' in infos:
             all_delta_taxo = [sbjct_taxonomy]
@@ -526,6 +535,7 @@ By default, only the best HSP of each sequence is reported.""")
                 pos_line = qd[2]
                 args.tabfh.seek(pos_line)
                 blast_line = args.tabfh.readline()
+                toPrintInKrona = ['\t'.join(blast_line.split()[1:11]), args.path_img, args.path_aln]
                 fld = blast_line.split('\t')
                 try:
                     sbjct_taxonomy = fld[taxcolumn].strip()
@@ -541,7 +551,9 @@ By default, only the best HSP of each sequence is reported.""")
                     print >>sys.stderr, 'no taxo found for %s' % query
                     continue
                 if sbjct_taxonomy not in all_delta_taxo:
-                    taxo_tree = insert_taxo_tot_delta(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+                    ###########> toPrintInKrona
+                    #taxo_tree = insert_taxo_tot_delta(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
+                    taxo_tree = insert_taxo_tot_delta(taxo_tree, query, toPrintInKrona, sbjct_taxonomy, args.rank, args.identical)
                     all_delta_taxo.append(sbjct_taxonomy)
         # print >>sys.stderr, p.get_memory_info()
         query_infos.pop(query)

@@ -212,6 +212,7 @@ class KronaDTD (ElementXML):
         self.end_elem('datasets')
 
     def attributes(self, attributes_values):
+        #print 'html 2'
         # 'attributes':{'magnitude': 'reads'},
         # <attributes magnitude="sample_attr_1">...</attributes>
         # attributes_values = {'sample_attr': [(sample_attr_name, attribute_values)],}
@@ -230,6 +231,7 @@ class KronaDTD (ElementXML):
         self.end_elem('attributes')
 
     def node(self, child_nodes):  # taxon
+        #print 'html 3'
         # <node name='' href=''></node>
         # node_attributes={'name:'','href':''}
         node_attributes, rankNbRead_values, query_list_values, child_nodes = self._to_krona_node(child_nodes)
@@ -240,7 +242,6 @@ class KronaDTD (ElementXML):
         for san, sav in rankNbRead_values:
             self.sample_attr(san, sav)
         # <sample_list_1>
-
         for c in child_nodes:
             self.node(c)
         for sln, slv in query_list_values:
@@ -249,31 +250,60 @@ class KronaDTD (ElementXML):
         self.end_elem('node')
 
     def _to_krona_node(self, taxon):
+        #print 'html 4'
         node_attributes = {'name': taxon.name}
-        if taxon.rank:
-            rank_values = ('rank', [(taxon.rank, {})])
+        if taxon.name:
+            rank_values = ('rank', [(taxon.name, {})]) # a modifier pour afficher le taxon
         else:
             rank_values = ('rank', [])
+#         if taxon.rank:
+#             rank_values = ('rank', [(taxon.rank, {})])
+#         else:
+#             rank_values = ('rank', [])
 
         child_nodes = taxon.childs
         # for c in taxon.childs:
         #    self.toKronaNode(c )
 
         read_values = ('reads', [(taxon.nb_querys, {})])
+        fasta_values = ('fasta', [(self.file_name, {})]) # ici a voir / a modifie
         # blast_values = ('blast',[(taxon.nb_querys, {})])
         list_values_qry = []
+        fasta_values_qry = []
+        
         # list_values_blast = []
         if taxon.has_queries():
             for query in taxon.queriesS:
-                list_values_qry.append(("%-40s\t%s" % (query[0], query[1]), {}))
+                # query = (seq_name, toPrintInKrona)
+                # toPrintInKrona = [hsp, path_img]
+                ############# > a modifier
+                #list_values_qry.append(("%-40s\t%s" % (query[0], query[1]), {}))
+                toPrintInKrona = query[1][0]
+                img_path = query[1][1]
+                aln_path = query[1][2]
+                db_all = toPrintInKrona.split()[0]
+                db_acc = db_all.split('|')[1]
+                db = db_all.split('|')[0]
+                img_merge = "%s_merge.png" % db_acc
+                img = "%s.png" % db_acc
+                aln_merge = "%s.merge.aln" % db_acc
+                aln_qry = "%s_%s.aln" % (db_acc, query[0].strip())
+                hsp = '\t'.join(toPrintInKrona.split()[1:])
+                d1 = '<a download="%s" href="%s/%s">%s|%s</a>' % (img_merge, img_path, img_merge, db, img_merge)
+                d2 = '<a download="%s" href="%s/%s">%s</a>' % (img, img_path, img, img)
+                d3 = '<a download="%s" href="%s/%s">%s</a>' % (aln_merge, aln_path, aln_merge, aln_merge)
+                d4 = '<a download="%s" href="%s/%s">%s</a>' % (aln_qry, aln_path, aln_qry, aln_qry)
+                list_values_qry.append(('%-40s\t%s\t%s\t%s\t%s\t%s\t' % (query[0], d1, d2, d3, d4, hsp), {}))
+                fasta_values_qry.append((query[0].strip(), {}))
                 # list_values_blast.append((query[1], {}))
         # list_values = [('read_members',list_values_qry), ('blast_members',list_values_blast)]
-        query_list_values = [('read_members', list_values_qry)]
+        query_list_values = [('read_members', list_values_qry), ('fasta_members', fasta_values_qry)]
 
         # return node_attributes, [read_values, blast_values, rank_values], list_values, child_nodes
-        return node_attributes, [read_values, rank_values], query_list_values, child_nodes
+        return node_attributes, [read_values, fasta_values, rank_values], query_list_values, child_nodes
 
     def sample_attr(self, sample_attr_name, sample_attr_values):
+        #print 'html 5'
         if sample_attr_values:
             self.start_elem(sample_attr_name)
             self.increase_indent()
@@ -294,7 +324,7 @@ class KronaDTD (ElementXML):
             self.start_elem('vals')
             self.increase_indent()
             for vl, av in sple_list_values:
-                # <val herf=''>7</val>
+                # <val href=''>7</val>
                 self.val(vl, av)
             self.decrease_indent()
             self.end_elem('vals')
@@ -322,6 +352,7 @@ class Krona (KronaDTD):
         self.file_name = file_name
 
     def krona(self):
+        #print 'xml'
         self.indent = 0
         # xmlKrona = KronaDTD(self.outfh, self.indent)
         self.start_krona()
@@ -329,19 +360,21 @@ class Krona (KronaDTD):
         # color_values = {'attribute':'', 'default':'true'}
         # xmlKrona.color(color_values)
         attributes_values = {'sample_attr': [('reads', {'display': 'Nb of reads', 'listAll': 'read_members'}),
+                                             ('fasta', {'display':'Id List in ', 'listAll':'fasta_members'}),
                                              # ('blast', {'display':'Blast offset', 'listAll':'blast_members'}),
                                              ('rank', {'display': 'Rank', 'mono': 'true'})],
                              # 'sample_list':[]
                              'sample_list': ['read_members',
+                                             'fasta_members',
                                              'blast_members']
                              }
-
         self.attributes(attributes_values)
 
         self.node(self.taxo_tree)
         self.end_krona()
 
     def krona_html(self, krona_jsfh=None):
+        #print 'html 1'
         self.indent = 0
         # xmlKrona = KronaDTD(self.outfh, self.indent, self.krona_url, self.krona_local)
         self.header_html(krona_jsfh)
@@ -350,10 +383,11 @@ class Krona (KronaDTD):
         # color_values = {'attribute':'', 'default':'true'}
         # xmlKrona.color(color_values)
         attributes_values = {'sample_attr': [('reads', {'display': 'Nb of reads', 'listAll': 'read_members'}),
-                                             # ('blast', {'display':'Blast offset', 'listAll':'blast_members'}),
+                                             ('fasta', {'display': 'Contig list in', 'listAll':'fasta_members'}),
                                              ('rank', {'display': 'Rank', 'mono': 'true'})],
                              # 'sample_list':[]
                              'sample_list': ['read_members',
+                                             'fasta_members',
                                              'blast_members']
                              }
 
@@ -547,7 +581,12 @@ class KronaJSONDTD (ElementJSON):
         self.elem_attributes({'_display': 'Nb of reads', '_listAll': 'read_members'}, coma=',')
         print >>self.outfh, '"__text":"%s"' % ('reads'),
         self.end_brace(coma=',')
-
+        
+        
+        self.start_brace()
+        self.elem_attributes({'_display': 'Rank', '_mono': 'true'}, coma=',')
+        print >>self.outfh, '"__text":"%s"' % ('rank'),
+        self.end_brace()
         # ('rank', {'display':'Rank', 'mono':'true'})
         self.start_brace()
         self.elem_attributes({'_display': 'Rank', '_mono': 'true'}, coma=',')
@@ -558,7 +597,6 @@ class KronaJSONDTD (ElementJSON):
 
         # <list>read_members</list> ==> list:  read_members
         self.complete_simple_dbl_quote_element('list', 'read_members')
-
         # </attributes> ==>}}
         self.end_brace(coma=',')
 
@@ -575,6 +613,7 @@ class KronaJSONDTD (ElementJSON):
         # <sample_attr_1> ==> sample_attr_1:
 
         self.complete_complex_brace_element('reads',  self.complete_simple_dbl_quote_element_str('val',  nb_reads, ''), ',')
+
         if rank:
             self.complete_complex_brace_element('rank',  self.complete_simple_dbl_quote_element_str('val',  rank, ''), ',')
 
@@ -621,6 +660,7 @@ class KronaJSONDTD (ElementJSON):
 
         # <sample_attr_1> ==> sample_attr_1:
         self.complete_complex_brace_element('reads',  self.complete_simple_dbl_quote_element_str('val',  nb_reads, ''), ',')
+
         if rank:
             self.complete_complex_brace_element('rank',  self.complete_simple_dbl_quote_element_str('val',  rank, ''), ',')
 

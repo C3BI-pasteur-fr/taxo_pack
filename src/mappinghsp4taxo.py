@@ -13,6 +13,10 @@
 import os
 import sys
 import argparse
+import pickle
+import genoGd
+
+
 
 class MappingError:
     def __init__(self, err):
@@ -27,15 +31,14 @@ except:
     print >>sys.stderr, MappingError("The mandatory RANKOPTIMIZERLIB environment variable is not defined")
     sys.exit(1)
 
-try:
-    LIB2 = os.environ['BLAST2TC_LIB']
-except:
-    print >>sys.stderr, MappingError("The mandatory BLAST2TC_LIB environment variable is not defined")
-    sys.exit(1)
+# try:
+#     LIB2 = os.environ['BLAST2TC_LIB']
+# except:
+#     print >>sys.stderr, MappingError("The mandatory BLAST2TC_LIB environment variable is not defined")
+#     sys.exit(1)
 
 
 import Golden
-# os.environ['GOLDENDATA'] = "/mount/banques/prod/index/golden"
 
 try:
     GOLDENDATA = os.environ['GOLDENDATA']
@@ -46,11 +49,7 @@ except:
     sys.exit(1)
 
 
-import genoGd
-
-
-
-
+######################## analyse krona utput and golden
 
 def parseUniprot(flatFile, DE):
     """
@@ -183,12 +182,12 @@ def parseGenbankSeq(flatFile, file_format):
         while i < len(SEQ):
             sequence += SEQ[i:i+80] + '\n'
             i += 80
-        return sequence
+        return sequence[:-1]
     elif file_format == 'raw':
         return SEQ
 
 
-def parse(flatFile, file_format):
+def format_golden_out(flatFile, file_format):
     """
     parse db flat file (uniprot, embl, genbank)
     """
@@ -199,37 +198,7 @@ def parse(flatFile, file_format):
     return ''
 
 
-def doGolden(db, ac, file_format='fasta'):
-    # ## db ref
-    if db in ['sp', 'sw', 'swissprot', 'tr', 'trembl']:
-        db = 'uniprot'
-    elif db in ['emb', 'dbj']:
-        db = 'embl'
-    elif db in ['gb']:
-        db = 'genbank'
-    elif db in ['gp']:
-        db = 'genpept'
-    elif db in ['ref']:
-        db = 'refseq'
-    elif db in ['rdpii']:
-        db = 'rdpii'
-    elif db[0:8] == 'embl_wgs':
-        db = 'embl_wgs'
-    elif db[0:8] == 'genbank_wgs':
-        db = 'genbank_wgs'
-    # elif db in ['pir','pdb','tpg', 'tpe', 'tpd', 'prf']:
-    #    return '','','',''
-
-    try:
-        flatFile = Golden.access(db, ac)
-    except IOError:
-        return ''
-
-    if flatFile:
-        return parse(flatFile, file_format)  # orgName, taxId, taxoLight
-    else:
-        return ''
-
+############################   plot data   ################################
 
 def _blastScoreVsColor(val):
     if 0 <= val < 50:
@@ -261,6 +230,7 @@ def _blastScoreVsColorInv(val):
         return 'black'
 
 
+
 def plot(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
@@ -278,11 +248,11 @@ def plot(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typ
         #    header = blLine[0][0:10]+'..'
         header = blh[0][8:18]+'..'
         if int(blh[8]) < int(blh[9]):
-            gdPlot.plotHit(int(int(blh[8]) * rpt), int(int(blh[9]) * rpt), header, _blastScoreVsColor(float(blh[11])), delta=2, head=head)
+            gdPlot.plotHit(int(int(blh[8]) * rpt), int(int(blh[9]) * rpt), header, _blastScoreVsColor(float(blh[10])), delta=2, head=head)
             nbhit += 1
             gdPlot._nbligneP()
         else:
-            gdPlot.plotHit(int(int(blh[9]) * rpt), int(int(blh[8]) * rpt), header, _blastScoreVsColorInv(float(blh[11])), delta=2, head=head)
+            gdPlot.plotHit(int(int(blh[9]) * rpt), int(int(blh[8]) * rpt), header, _blastScoreVsColorInv(float(blh[10])), delta=2, head=head)
             nbhit += 1
             gdPlot._nbligneP()
         head = False
@@ -326,7 +296,7 @@ def plotMerge(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4
         picturefh.close()
 
 
-def plotMerge2plus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFewPlus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -364,7 +334,7 @@ def plotMerge2plus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fonts
         picturefh.close()
 
 
-def plotMerge2minus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFewMinus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -401,7 +371,7 @@ def plotMerge2minus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, font
         picturefh.close()
 
 
-def plotMerge2(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
+def plotMergeFew(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typePlot='png'):
     """ picture output """
     # blHits: list of split (blast m8 line)
     # blHits = [qry, sbjct, % identity, aln length, mismatches, gap, q. start, q. end, s. start, s. end, e-value, bit score]
@@ -446,99 +416,67 @@ def plotMerge2(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=
         picturefh.close()
 
 
-if __name__ == '__main__':
-    usage = "mappinghsp4taxo [options] -i <file>/-j <file> -b <file>"
 
-    parser = argparse.ArgumentParser(prog='mappinghsp4taxo.py',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter, usage=usage)
-    general_options = parser.add_argument_group(title="Options", description=None)
 
-    general_options.add_argument("-i", "--one_column_file", dest="oneofflinefh",
-                                 help="Offset's list of line to parse taxoptomizer output file (cf option -b). File contains taxoptimizer's line offset (integer).",
-                                 metavar="file",
-                                 required=True)
-    general_options.add_argument("-j", "--two_column_file", dest="twoofflinefh",
-                                 help="kronaextract output file. FIle contains two column; first: reads name and second: taxoptimizer's line offset (integer).",
-                                 metavar="file",
-                                 required=True)
-    general_options.add_argument("-b", "--taxofile", dest="taxofh",
-                                 help="[p]taxoptimizer output file (format: blast m8 + OC + taxonomy +/-  DE).",
-                                 metavar="file",
-                                 required=True)
+##############################################################################
+#
+#            Golden: Keep this for compatibility and performance testing.
+#
+##############################################################################
 
-    general_options.add_argument("-e", "--extract_file", dest="extractfh",
-                                 help="Extract lines of interest from [p]taxoptimizer file and write them in <file>",
-                                 type=argparse.FileType('w'),
-                                 metavar="file")
+def doGolden(db, ac, file_format='fasta'):
+    # ## db ref
+    if db in ['sp', 'sw', 'swissprot', 'tr', 'trembl']:
+        db = 'uniprot'
+    elif db in ['emb', 'dbj']:
+        db = 'embl'
+    elif db in ['gb']:
+        db = 'genbank'
+    elif db in ['gp']:
+        db = 'genpept'
+    elif db in ['ref']:
+        db = 'refseq'
+    elif db in ['rdpii']:
+        db = 'rdpii'
+    elif db[0:8] == 'embl_wgs':
+        db = 'embl_wgs'
+    elif db[0:8] == 'genbank_wgs':
+        db = 'genbank_wgs'
+    elif db in ['pir','pdb','tpg', 'tpe', 'tpd', 'prf']:
+        return ''
 
-    general_options.add_argument("-c", "--blast_column",
-                                 dest="blast_column", metavar="int",
-                                 help="Column number to parse in ptaxoptimizer file (default: 2)", default=1)
-    general_options.add_argument("-s", "--separator",
-                                 dest="separator", metavar="STRING",
-                                 help="Separator character (default '|')",
-                                 default='|')
+    try:
+        flatFile = Golden.access(db, ac)
+    except IOError, err:
+        print >>sys.stderr, err, "%s:%s" % (db, ac)
+        sys.exit()
 
-    general_options.add_argument("-p", "--picture_file", dest="picture_prefix",
-                                 help="Draw picture(s) with prefix <str>. png format", metavar="STRING", default='')
+    if flatFile:
+        return format_golden_out(flatFile, file_format)  # orgName, taxId
+        flatFile = ''  # buffer free
+    else:
+        return ''
 
-    general_options.add_argument("-x", "--strand_orientation", dest='strand_orientation',
-                                 help="Split mapping acccording to strand's orientation (minus and plus orientations)",
-                                 metavar="BOOLEAN", action="store_true", default=False)
 
-    general_options.add_argument("-m", "--merge", dest='merge',
-                                 help="Draw all hsp in one line",
-                                 metavar="BOOLEAN", action="store_true", default=False)
+##############################################################################
 
-    general_options.add_argument("-M", "--merge2", dest='merge2',
-                                 help="Draw non overlapping hsp in few lines   --> in developpment",
-                                 metavar="BOOLEAN", action="store_true", default=False)
 
-    general_options.add_argument("-g", "--galaxy_restrict", dest='galaxy_restrict',
-                                 help="Restrict output(s) to one reference sequence",
-                                 metavar="BOOLEAN", action="store_true", default=False)
-
-    args = parser.parse_args()
-
-    if args.oneofflinefh:
-        try:
-            offlinefh = args.oneofflinefh
-            offset_column = 0
-        except IOError, err:
-            print >>sys.stderr, err
-            sys.exit()
-    elif args.twoofflinefh:
-        try:
-            offlinefh = args.twoofflinefh
-            offset_column = 1
-        except IOError, err:
-            print >>sys.stderr, err
-            sys.exit()
-
+def parse_krona_extract(fhin, blast_column):
     DBInfo = {}
-
     maxi = 0
-    sbjctAccMax = []
-    offline = offlinefh.readline()
-    while offline:
-        off_field = offline.split('\t')
-        if len(off_field) != offset_column + 1:
-            print >>sys.stderr, "format error: cf option error: -i/--one_column_file or -j/two_column_file \n"
-            sys.exit(1)
-        position = int(off_field[offset_column])
-        args.taxofh.seek(position)
-        blLine = args.taxofh.readline()
-        if args.extract_file:
-            print >>args.extractfh, blLine[:-1]
-        blfld = blLine.split('\t')
-        query = blfld[0]
+    subjct_with_max_query = []
+    line = fhin.readline()
+    while line:
+        fld = line.split('\t')
+        
+        query = fld[0].strip()
         try:
-            sbjctInfo = blfld[args.blast_column].split(args.separator)
+            sbjctInfo = fld[blast_column].split(args.separator)
         except:
-            if args.blast_column < len(blfld):
-                print >>sys.stderr, RankOptimizerError("Parsing error: %s" % blfld[args.blast_column])
+            if blast_column < len(fld):
+                print >>sys.stderr, MappingError("Parsing error: %s" % fld[blast_column])
             else:
-                print >>sys.stderr, RankOptimizerError("Parsing error: column %s doesn't exist in line nb %s" % (args.blast_column+1, blLine))
+                print >>sys.stderr, MappingError("Parsing error: column %s doesn't exist in line nb %s" % (blast_column+1, line))
             continue
         sbjctAcc = ''
         sbjctDB = ''
@@ -552,42 +490,123 @@ if __name__ == '__main__':
             sbjctAcc = sbjctInfo[1]
 
         if not sbjctAcc or not sbjctDB:
-            print >>sys.stderr, RankOptimizerError("Parsing error: %s" % blfld[args.blast_column])
+            print >>sys.stderr, MappingError("Parsing error: %s" % fld[blast_column])
             continue
 
         if sbjctAcc in DBInfo:
             DBInfo[sbjctAcc]['nb'] += 1
-            DBInfo[sbjctAcc]['blast'].append(blfld[:12])
+            DBInfo[sbjctAcc]['blast'].append(fld[:12])
+            #print sbjctAcc, DBInfo[sbjctAcc]['nb']
         else:
-            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [blfld[:12]]}
+            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld[:12]]}
 
         if DBInfo[sbjctAcc]['nb'] > maxi:
             maxi = DBInfo[sbjctAcc]['nb']
-            sbjctAccMax = [sbjctAcc]
+            subjct_with_max_query = [sbjctAcc]
         elif DBInfo[sbjctAcc]['nb'] == maxi:
-            sbjctAccMax.append(sbjctAcc)
+            subjct_with_max_query.append(sbjctAcc)
 
-        offline = offlinefh.readline()
+        line = fhin.readline()
+    return DBInfo, subjct_with_max_query
 
-    if args.galaxy_restrict:
-        # fichiers multiples mal geres par galaxy
-        sbjctAccMax = sbjctAccMax[0:1]
 
-    for elemMax in sbjctAccMax:
-        if not args.galaxy_restrict:
-            plot_name_prefix = args.picture_prefix + '_' + elemMax
+def print_subjetcs(fho, DBInfo):
+    #for accMax in subjct_with_max_query:
+    for acc in DBInfo.keys():
+        sbjctSeq = doGolden(DBInfo[acc]['db'], acc, file_format='fasta')
+        
+        if not sbjctSeq:
+            print >>sys.stderr, ('Golden error: %s %s' % (DBInfo[acc]['db'], acc))
+            continue
         else:
-            plot_name_prefix = args.picture_prefix
+            print >>fho, sbjctSeq
+            #print >>fho, '>%s' % acc
+            bls = DBInfo[acc]['blast']
+            #bls.sort(lambda x, y: cmp(int(x[8]), int(y[8])))
+            #for bl in bls:
+            #    print >>fho, bl
+
+def dump_seq_subjetcs(DBInfo):
+    #for accMax in subjct_with_max_query:
+    for acc in DBInfo.keys():
+        sbjctSeq = doGolden(DBInfo[acc]['db'], acc, file_format='fasta')
+        
+        if not sbjctSeq:
+            print >>sys.stderr, ('Golden error: %s %s' % (DBInfo[acc]['db'], acc))
+            continue
+        else:
+            DBInfo[acc]['seq'] = sbjctSeq
+    return DBInfo
+
+
+
+if __name__ == '__main__':
+    usage = ""
+
+    parser = argparse.ArgumentParser(prog='mappinghsp4taxo.py',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter, usage=usage)
+    general_options = parser.add_argument_group(title="Options", description=None)
+
+    general_options.add_argument("-i", "--two_column_file", dest="krona_extract_fh",
+                                 help="kronaextract output file: query and HSP in two columns", 
+                                 type=file,
+                                 required=True)
+    general_options.add_argument("-o", "--print_seq",
+                                 action='store',
+                                 dest='fhout',
+                                 type=argparse.FileType('w'),
+                                 help='Output ')
+    general_options.add_argument("-c", "--blast_column",
+                                 dest="blast_column", metavar="int",
+                                 help="Column number to parse in ptaxoptimizer file (default: 2)",
+                                 default=1)
+    general_options.add_argument("-s", "--separator",
+                                 dest="separator", metavar="STRING",
+                                 help="Separator character (default '|')",
+                                 default='|')
+    general_options.add_argument("-d", "--dump_seq",
+                                 dest="dump_seq",
+                                 action="store_true",
+                                 help="dump_seq",
+                                 default=False)
+
+    general_options.add_argument("-p", "--picture_file", dest="picture_prefix",
+                                 help="Draw picture(s) with prefix <str>. png format", 
+                                 metavar="STRING", required=True)
+
+    general_options.add_argument("-x", "--strand_orientation", dest='strand_orientation',
+                                 help="Split mapping acccording to strand's orientation (minus and plus orientations)",
+                                action="store_true", default=False)
+
+    general_options.add_argument("-m", "--merge", dest='merge',
+                                 help="Draw all hsp in one line",
+                                 action="store_true", default=False)
+
+    general_options.add_argument("-M", "--merge_few", dest='merge_few',
+                                 help="Draw non overlapping hsp in few lines   --> in developpment",
+                                action="store_true", default=False)
+
+
+    args = parser.parse_args()
+
+    DBInfo, subjct_with_max_query = parse_krona_extract(args.krona_extract_fh, args.blast_column)
+    DBInfo = dump_seq_subjetcs(DBInfo)
+    #if args.fhout:
+    #    print_subjetcs(args.fhout, DBInfo)
+    #pickle.dump((DBInfo, subjct_with_max_query), open('subject.dmp', 'w'))
+
+    for subject in subjct_with_max_query:
+        plot_name_prefix = args.picture_prefix + '_' + subject
         plus = []
         minus = []
-        DBInfo[elemMax]['blast'].sort(lambda x, y: cmp(int(x[8]), int(y[8])))
-        if args.strand_orientation or (args.merge or args.merge2):
-            for bl in DBInfo[elemMax]['blast']:
+        DBInfo[subject]['blast'].sort(lambda x, y: cmp(int(x[8]), int(y[8])))
+        if args.strand_orientation or (args.merge or args.merge_few):
+            for bl in DBInfo[subject]['blast']:
                 if int(bl[8]) <= int(bl[9]):
                     plus.append(bl)
                 else:
                     minus.append(bl)
-            if (args.merge or args.merge2):
+            if (args.merge or args.merge_few):
                 new = []
                 i = 0
                 j = 0
@@ -609,34 +628,34 @@ if __name__ == '__main__':
             else:
                 minus.reverse()
 
-        sbjctSeq = doGolden(DBInfo[elemMax]['db'], elemMax, file_format='raw')
+        sbjctSeq = DBInfo[subject]['seq']
         if not sbjctSeq:
-            print >>sys.stderr, ('Golden error: %s %s' % (DBInfo[elemMax]['db'], elemMax))
+            print >>sys.stderr, ('Golden error: %s %s' % (DBInfo[subject]['db'], subject))
             continue
         sbjctLen = len(sbjctSeq)
-        # sbjctLen = 2900
-        if args.picture_prefix and (not args.merge and not args.merge2):
+        print sbjctLen
+        if args.picture_prefix and (not args.merge and not args.merge_few):
             if not args.strand_orientation:
-                plot(plot_name_prefix + '.png', sbjctLen, elemMax, DBInfo[elemMax]['blast'], sizeX=700, fontsize=8, typePlot='png')
+                plot(plot_name_prefix + '.png', sbjctLen, subject, DBInfo[subject]['blast'], sizeX=700, fontsize=8, typePlot='png')
             else:
-                plot(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
-                plot(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
+                plot(plot_name_prefix + '_plus.png', sbjctLen, subject, plus, sizeX=700, fontsize=8, typePlot='png')
+                plot(plot_name_prefix + '_minus.png', sbjctLen, subject, minus, sizeX=700, fontsize=8, typePlot='png')
 
         if args.picture_prefix and args.merge:
-            # if not args.galaxy_restrict:
             plot_name_prefix += '_merge'
 
             if not args.strand_orientation:
-                plotMerge(plot_name_prefix + '.png', sbjctLen, elemMax, DBInfo[elemMax]['blast'], sizeX=700, fontsize=8, typePlot='png')
+                plotMerge(plot_name_prefix + '.png', sbjctLen, subject, DBInfo[subject]['blast'], sizeX=700, fontsize=8, typePlot='png')
             else:
-                plotMerge(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
-                plotMerge(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
+                plotMerge(plot_name_prefix + '_plus.png', sbjctLen, subject, plus, sizeX=700, fontsize=8, typePlot='png')
+                plotMerge(plot_name_prefix + '_minus.png', sbjctLen, subject, minus, sizeX=700, fontsize=8, typePlot='png')
 
-        if args.picture_prefix and args.merge2:
-            # if not args.galaxy_restrict:
+        if args.picture_prefix and args.merge_few:
             plot_name_prefix += '_noOverlap'
             if not args.strand_orientation:
-                plotMerge2(plot_name_prefix + '.png', sbjctLen, elemMax, new, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFew(plot_name_prefix + '.png', sbjctLen, subject, new, sizeX=700, fontsize=8, typePlot='png')
             else:
-                plotMerge2plus(plot_name_prefix + '_plus.png', sbjctLen, elemMax, plus, sizeX=700, fontsize=8, typePlot='png')
-                plotMerge2minus(plot_name_prefix + '_minus.png', sbjctLen, elemMax, minus, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFewPlus(plot_name_prefix + '_plus.png', sbjctLen, subject, plus, sizeX=700, fontsize=8, typePlot='png')
+                plotMergeFewMinus(plot_name_prefix + '_minus.png', sbjctLen, subject, minus, sizeX=700, fontsize=8, typePlot='png')
+
+

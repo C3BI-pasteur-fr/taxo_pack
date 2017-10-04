@@ -45,14 +45,20 @@ The output file could be split into two files: the 'prefix.seqname.txt' file con
                                  required=True)
     general_options.add_argument("-n", "--taxo_name",
                                  dest="taxoname", metavar="STRING",
-                                 help="Taxonomic name.")
+                                 help="Taxonomic name.",
+                                 required=True)
     general_options.add_argument("-o", "--out", dest="outfile",
                                  help="Output file.",
                                  type=argparse.FileType('w'),
                                  metavar="file")
-    general_options.add_argument("-s", "--split_prefix",
-                                 dest="prefix", metavar="str",
-                                 help="Split output file into two files with the given prefix name")
+    general_options.add_argument("-s", "--seq_name",
+                                 dest="seq_name", 
+                                 type=argparse.FileType('w'),
+                                 help="seq_name")
+#     general_options.add_argument("-t", "--offset",
+#                                  dest="offset", 
+#                                  type=file,
+#                                  help="offset: WARNING: no longer exist: png // aln display now")
 
     args = parser.parse_args()
 
@@ -87,14 +93,13 @@ The output file could be split into two files: the 'prefix.seqname.txt' file con
 #        else:
 #            print 'tout est ok: %s reads' % len(list_of_reads)
 
-    if args.prefix:
-        outfh_name = open(args.prefix + '.seqname.txt', 'w')
-        outfh_offset = open(args.prefix + '.offset.txt', 'w')
+
 
     for read_info in list_of_reads:
         if args.outfile:
             print >>args.outfile, read_info.text
-        if args.prefix:
-            fld = read_info.text.split('\t')
-            print >>outfh_name, fld[0]
-            print >>outfh_offset, fld[1]
+        fld = read_info.text.split('\t')
+        if args.seq_name:
+            print >>args.seq_name, fld[0].strip()
+        #if args.offset:
+        #    print >>args.outfh_offset, fld[1]
