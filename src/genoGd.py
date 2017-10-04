@@ -1,8 +1,6 @@
 import gd, os, sys
 
 
-
-
 fontlist = ['courier.ttf', 'gdMediumBoldFont', ]
 
 
@@ -13,12 +11,12 @@ for f in fontlist:
     except IOError, str:
         print >>sys.stderr, str
 
-fontpath = '/Users/maufrais/Developpements/Blast2LAT/lib'        
+fontpath = '/Users/maufrais/Developpements2/taxo_pack/src'
 
 try:
     GDFONTPATH = os.environ['RANKOPTIMIZERLIB']
 except:
-    print >>sys.stderr, RankOptimizerError("The mandatory RANKOPTIMIZERLIB environment variable is not defined")
+    print >>sys.stderr, "The mandatory RANKOPTIMIZERLIB environment variable is not defined"
     sys.exit(1)
 
 

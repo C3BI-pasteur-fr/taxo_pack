@@ -526,7 +526,7 @@ By default, only the best HSP of each sequence is reported.""")
 
         #taxo_tree = insert_taxo_tot(taxo_tree, query, pos_line, sbjct_taxonomy, args.rank, args.identical)
         ###########> toPrintInKrona
-        toPrintInKrona = ['\t'.join(line.split()[1:11]), args.path_img, args.path_aln]
+        toPrintInKrona = ['\t'.join(line.split()[1:12]), args.path_img, args.path_aln]
 
         taxo_tree = insert_taxo_tot(taxo_tree, query.strip(), toPrintInKrona, sbjct_taxonomy, args.rank, args.identical)
 
@@ -536,7 +536,7 @@ By default, only the best HSP of each sequence is reported.""")
                 pos_line = qd[2]
                 args.tabfh.seek(pos_line)
                 blast_line = args.tabfh.readline()
-                toPrintInKrona = ['\t'.join(blast_line.split()[1:11]), args.path_img, args.path_aln]
+                toPrintInKrona = ['\t'.join(blast_line.split()[1:12]), args.path_img, args.path_aln]
                 fld = blast_line.split('\t')
                 try:
                     sbjct_taxonomy = fld[taxcolumn].strip()

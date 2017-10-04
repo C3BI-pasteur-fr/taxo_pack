@@ -242,7 +242,7 @@ def parse_krona_extract(fhin, blast_column):
     subjct_with_max_query = []
     line = fhin.readline()
     while line:
-        fld = line.split('\t')
+        fld = line.strip().split('\t')
         
         query = fld[0].strip()
         try:
@@ -272,10 +272,10 @@ def parse_krona_extract(fhin, blast_column):
 
         if sbjctAcc in DBInfo:
             DBInfo[sbjctAcc]['nb'] += 1
-            DBInfo[sbjctAcc]['blast'].append(fld[:12])
+            DBInfo[sbjctAcc]['blast'].append(fld)
             #print sbjctAcc, DBInfo[sbjctAcc]['nb']
         else:
-            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld[:12]]}
+            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld]}
 
         if DBInfo[sbjctAcc]['nb'] > maxi:
             maxi = DBInfo[sbjctAcc]['nb']
@@ -293,7 +293,7 @@ def parse_krona_extract_with_html(fhin, blast_column):
     subjct_with_max_query = []
     line = fhin.readline()
     while line:
-        fld = line.split('\t')
+        fld = line.strip().split('\t')
         query = fld[0].strip()
         try:
             hsp = fld[1]
@@ -324,10 +324,10 @@ def parse_krona_extract_with_html(fhin, blast_column):
 
         if sbjctAcc in DBInfo:
             DBInfo[sbjctAcc]['nb'] += 1
-            DBInfo[sbjctAcc]['blast'].append(fld[:12])
+            DBInfo[sbjctAcc]['blast'].append(fld)
             #print sbjctAcc, DBInfo[sbjctAcc]['nb']
         else:
-            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld[:12]]}
+            DBInfo[sbjctAcc] = {'nb': 1, 'db': sbjctDB, 'blast': [fld]}
 
         if DBInfo[sbjctAcc]['nb'] > maxi:
             maxi = DBInfo[sbjctAcc]['nb']
@@ -422,6 +422,7 @@ if __name__ == '__main__':
         DBInfo, subjct_with_max_query = parse_krona_extract_with_html(args.krona_extract_fh, args.blast_column)
     else:
         DBInfo, subjct_with_max_query = parse_krona_extract(args.krona_extract_fh, args.blast_column)
+
     if args.dump_seq:
         if not args.outname:
             DBInfo = dump_seq_subjetcs(DBInfo)

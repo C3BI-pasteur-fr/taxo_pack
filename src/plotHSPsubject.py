@@ -77,6 +77,10 @@ def plot(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typ
     gdPlot.plotSeq(seqlen=sbjctLen, start=0, stop=sizeX, header=sbjctAcc, color='red', up=True)
     gdPlot._nbligneP()
     rpt = float(sizeX) / sbjctLen
+#     if sbjctLen > float(sizeX):
+#         rpt = float(sizeX) / sbjctLen
+#     else:
+#         rpt = 1
     nbhit = 0
     for blh in blHits:
         head = True
@@ -85,12 +89,13 @@ def plot(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typ
         # else:
         #    header = blLine[0][0:10]+'..'
         header = blh[0][8:18]+'..'
-        if int(blh[8]) < int(blh[9]):
-            gdPlot.plotHit(int(int(blh[8]) * rpt), int(int(blh[9]) * rpt), header, _blastScoreVsColor(float(blh[10])), delta=2, head=head)
+        if int(blh[11]) < int(blh[12]):
+            print int(blh[11]), int(blh[12]), ':', int(int(blh[11]) * rpt), int(int(blh[12]) * rpt), _blastScoreVsColor(float(blh[14]))
+            gdPlot.plotHit(int(int(blh[11]) * rpt), int(int(blh[12]) * rpt), header, _blastScoreVsColor(float(blh[14])), delta=2, head=head)
             nbhit += 1
             gdPlot._nbligneP()
         else:
-            gdPlot.plotHit(int(int(blh[9]) * rpt), int(int(blh[8]) * rpt), header, _blastScoreVsColorInv(float(blh[10])), delta=2, head=head)
+            gdPlot.plotHit(int(int(blh[12]) * rpt), int(int(blh[11]) * rpt), header, _blastScoreVsColorInv(float(blh[14])), delta=2, head=head)
             nbhit += 1
             gdPlot._nbligneP()
         head = False
@@ -114,14 +119,19 @@ def plotMerge(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4
     gdPlot._nbligneP()
     gdPlot._nbligneP()
     rpt = float(sizeX) / sbjctLen
+#     if sbjctLen > float(sizeX):
+#         rpt = float(sizeX) / sbjctLen
+#     else:
+#         rpt = 1
     nbhit = 1
     for blh in blHits:
         head = False
         header = ''
-        if int(blh[8]) < int(blh[9]):
-            gdPlot.plotHit(int(int(blh[8]) * rpt), int(int(blh[9]) * rpt), header, 'lightred', delta=2, head=head)
+        
+        if int(blh[11]) < int(blh[12]):
+            gdPlot.plotHit(int(int(blh[11]) * rpt), int(int(blh[12]) * rpt), header, 'lightred', delta=2, head=head)
         else:
-            gdPlot.plotHit(int(int(blh[9]) * rpt), int(int(blh[8]) * rpt), header, 'blue', delta=2, head=head)
+            gdPlot.plotHit(int(int(blh[12]) * rpt), int(int(blh[11]) * rpt), header, 'blue', delta=2, head=head)
         head = False
 
     gdPlot._nbligneP()
@@ -150,11 +160,11 @@ def plotMergeFewPlus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fon
         head = False
         header = ''
         end = int(blHits[i][9])
-        gdPlot.plotHit(int(int(blHits[i][8]) * rpt), int(int(blHits[i][9]) * rpt), '', _blastScoreVsColor(float(blHits[i][11])), delta=2, head=False)
+        gdPlot.plotHit(int(int(blHits[i][8]) * rpt), int(int(blHits[i][9]) * rpt), '', _blastScoreVsColor(float(blHits[i][14])), delta=2, head=False)
         n = 0
         while (i < len(blHits)-1) and (int(blHits[i+1][8]) < end):
             gdPlot._nbligneP()
-            gdPlot.plotHit(int(int(blHits[i+1][8]) * rpt), int(int(blHits[i+1][9]) * rpt), header, _blastScoreVsColor(float(blHits[i+1][11])), delta=2, head=head)
+            gdPlot.plotHit(int(int(blHits[i+1][8]) * rpt), int(int(blHits[i+1][9]) * rpt), header, _blastScoreVsColor(float(blHits[i+1][14])), delta=2, head=head)
             i += 1
             n += 1
             if n > nmax:
@@ -188,11 +198,11 @@ def plotMergeFewMinus(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fo
         head = False
         header = ''
         begin = int(blHits[i][8])
-        gdPlot.plotHit(int(int(blHits[i][9]) * rpt), int(int(blHits[i][8]) * rpt), '', _blastScoreVsColorInv(float(blHits[i][11])), delta=2, head=False)
+        gdPlot.plotHit(int(int(blHits[i][9]) * rpt), int(int(blHits[i][8]) * rpt), '', _blastScoreVsColorInv(float(blHits[i][14])), delta=2, head=False)
         n = 0
         while (i > 1) and (int(blHits[i-1][9]) < begin):
             gdPlot._nbligneP()
-            gdPlot.plotHit(int(int(blHits[i-1][9]) * rpt), int(int(blHits[i-1][8]) * rpt), header, _blastScoreVsColorInv(float(blHits[i-1][11])), delta=2, head=head)
+            gdPlot.plotHit(int(int(blHits[i-1][9]) * rpt), int(int(blHits[i-1][8]) * rpt), header, _blastScoreVsColorInv(float(blHits[i-1][14])), delta=2, head=head)
             i -= 1
             n += 1
             if n > nmax:
@@ -226,17 +236,17 @@ def plotMergeFew(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsiz
         header = ''
         if int(blHits[i][8]) < int(blHits[i][9]):
             end = int(blHits[i][9])
-            gdPlot.plotHit(int(int(blHits[i][8]) * rpt), int(int(blHits[i][9]) * rpt), '', _blastScoreVsColor(float(blHits[i][11])), delta=2, head=False)
+            gdPlot.plotHit(int(int(blHits[i][8]) * rpt), int(int(blHits[i][9]) * rpt), '', _blastScoreVsColor(float(blHits[i][14])), delta=2, head=False)
         else:
             end = int(blHits[i][8])
-            gdPlot.plotHit(int(int(blHits[i][9]) * rpt), int(int(blHits[i][8]) * rpt), '', _blastScoreVsColorInv(float(blHits[i][11])), delta=2, head=False)
+            gdPlot.plotHit(int(int(blHits[i][9]) * rpt), int(int(blHits[i][8]) * rpt), '', _blastScoreVsColorInv(float(blHits[i][14])), delta=2, head=False)
         n = 0
         while (i < len(blHits)-1) and (int(blHits[i+1][8]) < end or int(blHits[i+1][9]) < end):
             gdPlot._nbligneP()
             if int(blHits[i+1][8]) < int(blHits[i+1][9]):
-                gdPlot.plotHit(int(int(blHits[i+1][8]) * rpt), int(int(blHits[i+1][9]) * rpt), header, _blastScoreVsColor(float(blHits[i+1][11])), delta=2, head=head)
+                gdPlot.plotHit(int(int(blHits[i+1][8]) * rpt), int(int(blHits[i+1][9]) * rpt), header, _blastScoreVsColor(float(blHits[i+1][14])), delta=2, head=head)
             else:
-                gdPlot.plotHit(int(int(blHits[i+1][9]) * rpt), int(int(blHits[i+1][8]) * rpt), header, _blastScoreVsColorInv(float(blHits[i+1][11])), delta=1, head=head)
+                gdPlot.plotHit(int(int(blHits[i+1][9]) * rpt), int(int(blHits[i+1][8]) * rpt), header, _blastScoreVsColorInv(float(blHits[i+1][14])), delta=1, head=head)
             i += 1
             n += 1
             if n > nmax:
@@ -263,7 +273,7 @@ if __name__ == '__main__':
     general_options = parser.add_argument_group(title="Options", description=None)
     
     general_options.add_argument("-i", "--dump_name", dest="dump_name",
-                                 help="dump_name", 
+                                 help="prefix for dump file", 
                                  type=str,
                                  required=True)
     general_options.add_argument("-p", "--picture_file", dest="picture_prefix",
@@ -286,7 +296,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     DBInfo, subjct_with_max_query = pickle.load(open('%s.dmp' % args.dump_name, 'r'))
-    
+
     for subject in DBInfo.keys():
         plot_name_prefix = args.picture_prefix + '/' + subject
         plus = []
@@ -327,6 +337,7 @@ if __name__ == '__main__':
                 print 'a faire'   
         
         sbjctSeq = DBInfo[subject]['seq']
+        
         if not sbjctSeq:
             print >>sys.stderr, ('Golden error: %s %s' % (DBInfo[subject]['db'], subject))
             continue
