@@ -90,7 +90,6 @@ def plot(pictureFileName, sbjctLen, sbjctAcc, blHits, sizeX=700, fontsize=4, typ
         #    header = blLine[0][0:10]+'..'
         header = blh[0][8:18]+'..'
         if int(blh[11]) < int(blh[12]):
-            print int(blh[11]), int(blh[12]), ':', int(int(blh[11]) * rpt), int(int(blh[12]) * rpt), _blastScoreVsColor(float(blh[14]))
             gdPlot.plotHit(int(int(blh[11]) * rpt), int(int(blh[12]) * rpt), header, _blastScoreVsColor(float(blh[14])), delta=2, head=head)
             nbhit += 1
             gdPlot._nbligneP()
