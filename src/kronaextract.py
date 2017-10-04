@@ -45,8 +45,7 @@ The output file could be split into two files: the 'prefix.seqname.txt' file con
                                  required=True)
     general_options.add_argument("-n", "--taxo_name",
                                  dest="taxoname", metavar="STRING",
-                                 help="Taxonomic name.",
-                                 required=True)
+                                 help="Taxonomic name.")
     general_options.add_argument("-o", "--out", dest="outfile",
                                  help="Output file.",
                                  type=argparse.FileType('w'),
@@ -100,6 +99,6 @@ The output file could be split into two files: the 'prefix.seqname.txt' file con
             print >>args.outfile, read_info.text
         fld = read_info.text.split('\t')
         if args.seq_name:
-            print >>args.seq_name, fld[0].strip()
+            print >>args.seq_name, fld[0]
         #if args.offset:
         #    print >>args.outfh_offset, fld[1]
